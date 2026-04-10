@@ -1,139 +1,41 @@
-// src/screens/HomeScreen.tsx
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { fetchBcvPrice } from '../api/bcvScraper';
-import { getPriceByDate, savePrice } from '../db/database';
-import { Ionicons } from '@expo/vector-icons'; // Usamos los íconos que instalamos
+import React from 'react';
+import { ScrollView, Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 
-export default function HomeScreen() {
-    const [price, setPrice] = useState<number | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [status, setStatus] = useState<string>('Iniciando...');
+const COLORS = {
+    bg: '#F3F4F6',
+    card: '#FFFFFF',
+    text: '#111827',
+    primary: '#2563EB',
+    gray: '#9CA3AF',
+};
 
-    // Función para obtener la fecha de hoy en formato "YYYY-MM-DD"
-    const getTodayString = () => new Date().toISOString().split('T')[0];
-
-    const loadData = async (forceScrape = false) => {
-        setLoading(true);
-        const today = getTodayString();
-
-        // 1. Intentamos leer la base de datos primero (si no estamos forzando)
-        if (!forceScrape) {
-            setStatus('Consultando memoria local...');
-            const savedPrice = await getPriceByDate(today);
-            if (savedPrice) {
-                setPrice(savedPrice);
-                setStatus('Cargado al instante desde la BD ⚡');
-                setLoading(false);
-                return;
-            }
-        }
-
-        // 2. Si no hay dato o forzamos el refresco, activamos el Scraper
-        setStatus('Conectando sigilosamente al BCV 🕵️‍♂️...');
-        const scrapedPrice = await fetchBcvPrice();
-
-        if (scrapedPrice) {
-            await savePrice(today, scrapedPrice);
-            setPrice(scrapedPrice);
-            setStatus('Precio raspado y guardado con éxito ✅');
-        } else {
-            setStatus('Error: El BCV no respondió o cambió la página ❌');
-        }
-        setLoading(false);
-    };
-
-    // Se ejecuta automáticamente al abrir la app
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    return (
-        <View style={styles.container}>
-            <Text style={styles.header}>Referencia Oficial</Text>
-
-            <View style={styles.card}>
-                {loading ? (
-                    <ActivityIndicator size="large" color="#1a2b4c" />
-                ) : (
-                    <>
-                        <Text style={styles.currency}>Bs.</Text>
-                        <Text style={styles.price}>{price ? price.toFixed(2) : '---'}</Text>
-                    </>
-                )}
+const HomeScreen = () => (
+    <ScrollView style={styles.container}>
+        <Text style={styles.title}>Tasas de Hoy</Text>
+        {['BCV', 'Paralelo', 'Binance'].map((item) => (
+            <View key={item} style={styles.card}>
+                <div className="flex justify-between items-center">
+                    <Text style={styles.cardTitle}>{item}</Text>
+                    <Text style={{ color: 'green' }}>↑ 0.45%</Text>
+                </div>
+                <Text style={styles.rateText}>47.50 VES</Text>
+                <View style={styles.cardActions}>
+                    <TouchableOpacity style={styles.actionBtn}><Text>Copiar</Text></TouchableOpacity>
+                    <TouchableOpacity style={styles.actionBtn}><Text>Compartir</Text></TouchableOpacity>
+                </View>
             </View>
-
-            <Text style={styles.statusText}>{status}</Text>
-
-            <TouchableOpacity
-                style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={() => loadData(true)}
-                disabled={loading}
-            >
-                <Ionicons name="refresh" size={20} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.buttonText}>Forzar Extracción</Text>
-            </TouchableOpacity>
-        </View>
-    );
-}
+        ))}
+    </ScrollView>
+);
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
-    },
-    header: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#666',
-        marginBottom: 20,
-    },
-    card: {
-        backgroundColor: '#fff',
-        paddingVertical: 30,
-        paddingHorizontal: 50,
-        borderRadius: 20,
-        elevation: 5, // Sombra en Android
-        shadowColor: '#000', // Sombra en iOS
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        marginBottom: 20,
-    },
-    currency: {
-        fontSize: 30,
-        fontWeight: '600',
-        color: '#1a2b4c',
-        marginRight: 8,
-    },
-    price: {
-        fontSize: 60,
-        fontWeight: '900',
-        color: '#1a2b4c',
-    },
-    statusText: {
-        fontSize: 14,
-        color: '#888',
-        marginBottom: 40,
-        textAlign: 'center',
-    },
-    button: {
-        backgroundColor: '#1a2b4c',
-        flexDirection: 'row',
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    buttonDisabled: {
-        backgroundColor: '#a0aabf',
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
+    container: { flex: 1, backgroundColor: COLORS.bg, padding: 20, paddingTop: 60 },
+    title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20 },
+    card: { backgroundColor: COLORS.card, padding: 20, borderRadius: 16, marginBottom: 15, elevation: 2 },
+    cardTitle: { fontSize: 18, fontWeight: 'bold' },
+    rateText: { fontSize: 36, fontWeight: '900', marginVertical: 10 },
+    cardActions: { flexDirection: 'row', marginTop: 10 },
+    actionBtn: { marginRight: 15, paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#F3F4F6', borderRadius: 8 },
 });
+
+export default HomeScreen;
