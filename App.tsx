@@ -10,7 +10,7 @@ import ChartsScreen from './src/screens/ChartsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 
 // 1. Importamos el inicializador de la BD
-import { initDB } from './src/db/database'; 
+import { initDB } from './src/db/database';
 
 const Tab = createBottomTabNavigator();
 
