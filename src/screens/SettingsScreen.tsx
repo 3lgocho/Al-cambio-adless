@@ -68,7 +68,7 @@ const SettingsScreen = () => {
             </View>
 
             <View style={styles.versionContainer}>
-                <Text style={styles.versionText}>VERSIÓN 2.4.0 • FISCAL SANCTUARY</Text>
+                <Text style={styles.versionText}>VERSIÓN 1.0.0 • AL CAMBIO</Text>
             </View>
         </View>
     );

@@ -12,13 +12,8 @@ export interface DailyRates {
 
 export const initDB = async () => {
     try {
-        db = await SQLite.openDatabaseAsync('alcambio.db');
+        db = await SQLite.openDatabaseAsync('alcambio_v2.db');
 
-        // Eliminamos la tabla vieja si existe para evitar conflictos de esquema 
-        // (Ojo: esto borra datos locales previos, pero como estamos en desarrollo, es lo más limpio).
-        await db.execAsync(`DROP TABLE IF EXISTS exchange_rates;`);
-
-        // Nuevo esquema: La fecha es la llave primaria.
         await db.execAsync(`
             CREATE TABLE IF NOT EXISTS exchange_rates (
                 date TEXT PRIMARY KEY,
@@ -58,6 +53,50 @@ export const getRatesByDate = async (date: string): Promise<DailyRates | null> =
         return result || null;
     } catch (error) {
         console.error('Error buscando las tasas:', error);
+        return null;
+    }
+};
+
+export interface DailyRatesWithDate extends DailyRates {
+    date: string;
+}
+
+export const getAllRates = async (): Promise<DailyRatesWithDate[]> => {
+    if (!db) return [];
+    try {
+        const results = await db.getAllAsync<DailyRatesWithDate>(
+            'SELECT date, bcv, euro, binance_buy, binance_sell FROM exchange_rates ORDER BY date DESC'
+        );
+        return results;
+    } catch (error) {
+        console.error('Error obteniendo histórico de tasas:', error);
+        return [];
+    }
+};
+
+export const getLatestRates = async (): Promise<DailyRates | null> => {
+    if (!db) return null;
+    try {
+        const result = await db.getFirstAsync<DailyRates>(
+            'SELECT bcv, euro, binance_buy, binance_sell FROM exchange_rates ORDER BY date DESC LIMIT 1'
+        );
+        return result || null;
+    } catch (error) {
+        console.error('Error obteniendo últimas tasas:', error);
+        return null;
+    }
+};
+
+export const getPreviousDayRates = async (beforeDate: string): Promise<DailyRates | null> => {
+    if (!db) return null;
+    try {
+        const result = await db.getFirstAsync<DailyRates>(
+            'SELECT bcv, euro, binance_buy, binance_sell FROM exchange_rates WHERE date < ? ORDER BY date DESC LIMIT 1',
+            [beforeDate]
+        );
+        return result || null;
+    } catch (error) {
+        console.error('Error obteniendo tasas del día anterior:', error);
         return null;
     }
 };

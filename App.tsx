@@ -60,8 +60,8 @@ export default function App() {
           headerShown: false,
         })}
       >
-        <Tab.Screen name="Tazas" component={HomeScreen} />
         <Tab.Screen name="Calcular" component={CalcScreen} />
+        <Tab.Screen name="Tazas" component={HomeScreen} />
         <Tab.Screen name="Gráficos" component={ChartsScreen} />
         <Tab.Screen name="Ajustes" component={SettingsScreen} />
       </Tab.Navigator>
